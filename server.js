@@ -35,8 +35,15 @@ app.use('/', authRouter);
 app.use('/api', apiRouter);
 app.use('/', pagesRouter);
 
-// Initialize database on startup
-require('./lib/db').getDb();
+// Initialize database on startup, auto-seed if empty
+const { getDb } = require('./lib/db');
+const db = getDb();
+const playerCount = db.prepare('SELECT COUNT(*) as cnt FROM players').get();
+if (playerCount.cnt === 0) {
+  console.log('Empty database detected — running seed...');
+  require('./db/seed');
+  console.log('Seed complete.');
+}
 
 app.listen(PORT, () => {
   console.log(`Moeller Stats running at http://localhost:${PORT}`);
